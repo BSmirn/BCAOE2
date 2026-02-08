@@ -75,6 +75,7 @@ void Knight::action(float dt) {
     }
 
     collided = false; // произошло столкновение хоть с кем-то
+    int wood_chopper = 0;
     // проверить столкновения
     for (auto& o: objects) {
         if (this != o) {
@@ -83,14 +84,24 @@ void Knight::action(float dt) {
             bool time_to_attack = fps % attack_speed == 0;
             bool other_player = o->player != this->player;
             collided |= low_distance;
-            if (low_distance && time_to_attack && other_player) {
+            // атакуем объекты
+            if (!atack_limit && low_distance && time_to_attack && other_player) {
                 o->hp -= damage;
+                // атакуем дерево
+                atack_limit = true;
+                if (o->hp > 0 && o->type == Type::Tree) {
+                    o->on_damage(this);
+                    ++wood_chopper;
+                }
                 //std::cout << texture << " attack " << o->texture << std::endl;
             }
             if (o->hp <= 0)
                 o->kill(this);
         }
     }
+    if (wood_chopper > 0)
+        std::cout << "wood_chopper: " << wood_chopper << std::endl;
+
     // если врезались, то дёргаемся
     if (this->collided) {
         x += (rand() % 3 - 1) * 2;

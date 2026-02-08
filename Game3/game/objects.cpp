@@ -96,15 +96,21 @@ static void check_click() {
 
 void update_objects(float dt)
 {
+    // объекты из списка на спавн спавнятся
     for (auto spawner: spawn_order)
         spawner();
     spawn_order.clear();
 
     for (auto obj: objects)
+        obj->atack_limit = false;
+
+    // обработка физики объектов
+    for (auto obj: objects)
         if (obj->hp > 0)
             obj->action(dt);
     check_click();
 
+    // удалить мёртвые объекты из памяти
     std::erase_if(objects, [](Object* obj)
     {
         return obj->hp <= 0;

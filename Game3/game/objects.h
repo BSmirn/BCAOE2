@@ -41,8 +41,10 @@ public:
     bool collided {}; // если True, то было столкновение
     Player* player {}; // к кому принадлежит объект
     int attack_speed {}; // как часто наносится урон
+    bool atack_limit{};
 
     virtual void kill(Object* other);
+    virtual void on_damage(Object* other) {}
     bool is_bot();
     void draw(sf::RenderWindow& window) const;
     virtual void action(float dt); // действие объекта (в каждом кадре)

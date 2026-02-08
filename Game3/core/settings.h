@@ -1,7 +1,8 @@
 #pragma once
 #include <string>
 #include "game/level.h"
-
+void save_settings();
+void load_settings();
 inline int windowx = 1080;
 inline int windowy = 720;
 inline bool eslinashaigravckluchena = true;

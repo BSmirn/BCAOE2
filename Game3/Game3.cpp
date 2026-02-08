@@ -13,7 +13,6 @@
 #include "game/objects.h"
 #include "game/knight.h"
 using namespace std;
-
 void MakePlayers() 
 {
 	Player Player1;
@@ -66,6 +65,7 @@ void loading_sounds() {
 
 int main()
 {
+	load_settings();
 	// сид рандома перемешивает генерацию чисел
 	srand(time(0));
 
@@ -79,7 +79,7 @@ int main()
 	level_game = &level;
 
 	// Этот код потом снести:
-	for (int i = 0; i <= 1; i++) {
+	for (int i = 0; i <= 4; i++) {
 		auto k = new Knight(5, 5);
 		k->player = &Players[0];
 		spawn(k);
@@ -146,4 +146,5 @@ int main()
 			time_start = clock.getElapsedTime();
 		}
 	}
+	save_settings();
 }
