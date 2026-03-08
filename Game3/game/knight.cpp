@@ -1,6 +1,8 @@
+#include <random>
+#include <iostream>
+#include <algorithm>
 #include "knight.h"
 #include "core/settings.h"
-#include "Players.h"
 
 Knight::Knight(int _x, int _y) {
     texture = "Knight";
@@ -20,19 +22,11 @@ Knight::Knight(int _x, int _y) {
     hitbox.y = y;
     hitbox.w = 20;
     hitbox.h = 20;
+    attack_speed = 120; int attack_speed;
     
     //bool show_interface {}; // если True - можно увидеть интерфейс взаимодействия
 }
 
-bool Knight::is_bot()
-{
-    for (auto p: Players) {
-        if (p.botornotbot == true && p.Nickname == this->player)
-            return true;
-    }
-
-    return false;
-}
 bool Knight::is_water(int x, int y) {
     x /= 50;
     y /= 50;
@@ -46,10 +40,15 @@ bool Knight::is_water(int x, int y) {
 void Knight::action(float dt) {
     Object::action(dt);
 
-    // если нажали мышкой:
-    if (mouseleft && mouse_in_level(mouseposx, mouseposy) && !is_bot()) {
-        target_x = mouseposx + camera_x;
-        target_y = mouseposy + camera_y;
+    if (!is_bot()) {
+        // если нажали мышкой:
+        if (mouseleft && mouse_in_level(mouseposx, mouseposy)) {
+            target_x = mouseposx + camera_x;
+            target_y = mouseposy + camera_y;
+        }
+    } else {
+        if (hp_target <= 0 || botfps % 5 == 0)
+            target_bot();
     }
 
     auto dx = target_x - x;
@@ -75,14 +74,34 @@ void Knight::action(float dt) {
         dist = 0;
     }
 
+    collided = false; // произошло столкновение хоть с кем-то
+    int wood_chopper = 0;
     // проверить столкновения
-    collided = false;
     for (auto& o: objects) {
         if (this != o) {
             auto d = distance(x, y, o->x, o->y);
-            collided |= (d <= 25);
+            bool low_distance = d <= 25; // близко к объекту
+            bool time_to_attack = fps % attack_speed == 0;
+            bool other_player = o->player != this->player;
+            collided |= low_distance;
+            // атакуем объекты
+            if (!atack_limit && low_distance && time_to_attack && other_player) {
+                o->hp -= damage;
+                // атакуем дерево
+                atack_limit = true;
+                if (o->hp > 0 && o->type == Type::Tree) {
+                    o->on_damage(this);
+                    ++wood_chopper;
+                }
+                //std::cout << texture << " attack " << o->texture << std::endl;
+            }
+            if (o->hp <= 0)
+                o->kill(this);
         }
     }
+    if (wood_chopper > 0)
+        std::cout << "wood_chopper: " << wood_chopper << std::endl;
+
     // если врезались, то дёргаемся
     if (this->collided) {
         x += (rand() % 3 - 1) * 2;
@@ -97,3 +116,22 @@ void Knight::action(float dt) {
     safe_x = x;
     safe_y = y;
 }
+
+    void Knight::target_bot() {
+        
+        std::vector<Object*> Players_to_atack;
+
+        for (auto& o : objects)
+            if (!o->is_bot() && o->player != nullptr)
+                Players_to_atack.push_back(o);
+        if (Players_to_atack.empty())
+            return;
+        // перемешать список объектов пригодных для атаки
+        std::default_random_engine random;
+        std::shuffle(Players_to_atack.begin(), Players_to_atack.end(), random);
+
+        Object* target = Players_to_atack[0];
+        target_x = target->x;
+        target_y = target->y;
+        hp_target = target->hp;
+    }

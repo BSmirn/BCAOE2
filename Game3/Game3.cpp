@@ -13,7 +13,6 @@
 #include "game/objects.h"
 #include "game/knight.h"
 using namespace std;
-
 void MakePlayers() 
 {
 	Player Player1;
@@ -42,13 +41,18 @@ void loading_textures() {
 	Load_Texture("Barraks", "resource/Barracks.png");
 	Load_Texture("Villager", "resource/Villager.png");
 	Load_Texture("Knight", "resource/Knight.png");
+	Load_Texture("Knight-xmas", "resource/Knight-xmas.png");
 	Load_Texture("Stone", "resource/Stone.png");
+	Load_Texture("Stone-xmas", "resource/Stone-xmas.png");
 	Load_Texture("Dirt", "resource/Dirt.png");
 	Load_Texture("Dirt", "resource/Dirt.png");
 	Load_Texture("Grass", "resource/Grass.png");
+	Load_Texture("Snow", "resource/Snow.png");
 	Load_Texture("Water", "resource/Water.png");
+	Load_Texture("Water-iced", "resource/Water-iced.png");
 	Load_Texture("Stone_iron", "resource/Stone_iron.png");
 	Load_Texture("Tree", "resource/Tree.png");
+	Load_Texture("Tree-xmas", "resource/Tree-xmas.png");
 	Load_Texture("Gold_iron", "resource/Gold_iron.png");
 	Load_Texture("Fish", "resource/Fish.png");
 	Load_Texture("Kvadrat", "resource/Kvadrat.png");
@@ -61,6 +65,7 @@ void loading_sounds() {
 
 int main()
 {
+	load_settings();
 	// сид рандома перемешивает генерацию чисел
 	srand(time(0));
 
@@ -74,15 +79,16 @@ int main()
 	level_game = &level;
 
 	// Этот код потом снести:
-	for (int i = 0; i <= 1; i++) {
+	for (int i = 0; i <= 4; i++) {
 		auto k = new Knight(5, 5);
-		k->player = Players[0].Nickname;
+		k->player = &Players[0];
 		spawn(k);
 	}
 
-	for (int i = 0; i <= 2; i++) {
+	for (int i = 0; i <= 5; i++) {
 		auto k = new Knight(50*5, 50*10);
-		k->player = Players[1].Nickname;
+		k->player = &Players[1];
+		k->texture = "Knight-xmas"; // новогодний бот
 		spawn(k);
 	}
 	
@@ -132,7 +138,7 @@ int main()
 		Draw_interface(Okno);
 		Okno.display(); // показать кадр игры
 		fps++;
-
+		botfps++;
 		auto time_end = clock.getElapsedTime();
 		if ((time_end - time_start).asSeconds() > 1) {
 			game_fps = fps;
@@ -140,4 +146,5 @@ int main()
 			time_start = clock.getElapsedTime();
 		}
 	}
+	save_settings();
 }

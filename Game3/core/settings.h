@@ -1,7 +1,8 @@
 #pragma once
 #include <string>
 #include "game/level.h"
-
+void save_settings();
+void load_settings();
 inline int windowx = 1080;
 inline int windowy = 720;
 inline bool eslinashaigravckluchena = true;
@@ -18,5 +19,6 @@ inline bool interfacefree = true;
 inline int mouseposx = 0;
 inline int mouseposy = 0;
 inline bool mouseleft {};
+inline int botfps = 0;
 inline bool mouseright {};
 inline Level* level_game{};

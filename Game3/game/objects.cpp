@@ -1,6 +1,8 @@
 #include <functional>
+#include <algorithm>
 #include <cmath>
 #include "objects.h"
+#include "Players.h"
 #include "../engine/Graphik.h"
 #include "../core/settings.h"
 #include "../engine/interface.h"
@@ -9,6 +11,16 @@
 using namespace std;
 
 std::vector<std::function<void ()>> spawn_order;
+
+bool Object::is_bot()
+{
+    for (auto& p : Players) {
+        if (&p == player && p.botornotbot == true)
+            return true;
+    }
+
+    return false;
+}
 
 void spawn(Object* obj)
 {
@@ -37,16 +49,19 @@ void Object::draw(sf::RenderWindow& window) const
     Draw_Texture(window, pos_x, pos_y, this->texture);
 
     // рисовать прямоугольник тут:
-    /* rect h = hitbox;
+    #if 0
+    rect h = hitbox;
     h.x = pos_x;
     h.y = pos_y;
-    Draw_rect(window, h, false); */
+    Draw_rect(window, h, false);
+    #endif
 }
 
 void draw_objects(sf::RenderWindow& window)
 {
     for (auto obj: objects)
-        obj->draw(window);
+        if (obj->hp > 0)
+            obj->draw(window);
 }
 
 void Object::action(float dt) {
@@ -66,7 +81,6 @@ void Object::action(float dt) {
 void Object::on_click() {
     // действие при нажатии
 }
-
 static void check_click() {
     for (auto obj: objects) {
         auto pos_x = mouseposx + camera_x;
@@ -82,14 +96,25 @@ static void check_click() {
 
 void update_objects(float dt)
 {
+    // объекты из списка на спавн спавнятся
     for (auto spawner: spawn_order)
         spawner();
     spawn_order.clear();
 
     for (auto obj: objects)
-        obj->action(dt);
+        obj->atack_limit = false;
 
+    // обработка физики объектов
+    for (auto obj: objects)
+        if (obj->hp > 0)
+            obj->action(dt);
     check_click();
+
+    // удалить мёртвые объекты из памяти
+    std::erase_if(objects, [](Object* obj)
+    {
+        return obj->hp <= 0;
+    });
 }
 
 double distance(double ax, double ay, double bx, double by) {
@@ -109,4 +134,8 @@ bool Object::check_hitbox(const Object other) {
             a.x + a.w > b.x &&
             a.y < b.y + b.h &&
             a.y + a.h > b.y);
+}
+
+void Object::kill(Object* other) {
+
 }
